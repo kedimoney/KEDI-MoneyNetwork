@@ -1,7 +1,9 @@
+// ✅ Base URL ya backend yawe kuri Render
+const BASE_API = "https://kedi-moneynetwork.onrender.com";
 
-// Basic helper to POST data
+// ✅ Helper function yo kohereza POST request
 async function postData(url = '', data = {}) {
-  const response = await fetch(url, {
+  const response = await fetch(`${BASE_API}${url}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -11,37 +13,43 @@ async function postData(url = '', data = {}) {
   return response.json();
 }
 
-// Handle login form
+// ✅ Login handler
 if (window.location.pathname.includes("login.html")) {
   document.querySelector("form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const username = document.querySelector("#username").value;
     const password = document.querySelector("#password").value;
+
     const result = await postData("/api/login", { username, password });
+
     if (result.success) {
       localStorage.setItem("user", username);
       window.location.href = "dashboard.html";
     } else {
-      alert("Login failed!");
+      alert("Login failed! Please check your credentials.");
     }
   });
 }
 
-// Handle signup form
+// ✅ Signup handler
 if (window.location.pathname.includes("signup.html")) {
   document.querySelector("form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const username = document.querySelector("#username").value;
     const password = document.querySelector("#password").value;
+
     const result = await postData("/api/signup", { username, password });
+
     if (result.success) {
-      alert("Signup success! You can login now.");
+      alert("Signup successful! You can now login.");
       window.location.href = "login.html";
+    } else {
+      alert("Signup failed! " + result.message);
     }
   });
 }
 
-// Handle transaction forms
+// ✅ Transaction forms (koherereza amafaranga, kubikuza, kugurizwa)
 if (
   window.location.pathname.includes("fomukw.html") ||
   window.location.pathname.includes("kubikuza.html") ||
@@ -53,16 +61,20 @@ if (
     const payload = {};
     formData.forEach((value, key) => (payload[key] = value));
     payload.user = localStorage.getItem("user");
+
     const result = await postData("/api/submit", payload);
+
     if (result.success) {
-      alert("Transaction submitted!");
+      alert("Transaction submitted successfully!");
+    } else {
+      alert("Transaction failed: " + result.message);
     }
   });
 }
 
-// Load history on history.html
+// ✅ Load history data kuri dashboard
 if (window.location.pathname.includes("dashboard.html")) {
-  fetch("/api/history")
+  fetch(`${BASE_API}/api/history`)
     .then((res) => res.json())
     .then((data) => {
       const user = localStorage.getItem("user");
@@ -80,10 +92,13 @@ if (window.location.pathname.includes("dashboard.html")) {
             table.appendChild(row);
           });
       }
+    })
+    .catch((err) => {
+      console.error("Failed to load history:", err);
     });
 }
 
-// Set user name on dashboard
+// ✅ Set user name on dashboard
 document.addEventListener("DOMContentLoaded", () => {
   const user = localStorage.getItem("user");
   if (user && document.getElementById("user-name")) {
@@ -91,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Logout function
+// ✅ Logout function
 function logout() {
   localStorage.removeItem("user");
   window.location.href = "login.html";

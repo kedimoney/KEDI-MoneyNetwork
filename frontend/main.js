@@ -1,11 +1,9 @@
-// frontend/main.js
-
-// Base API URL (localhost vs deployed)
+// Base API URL (local vs deployed)
 const BASE_API = window.location.hostname.includes("localhost")
   ? "http://localhost:3000"
   : "https://kedi-moneynetwork.onrender.com";
 
-// POST JSON helper (login, etc)
+// Helper: POST JSON (login)
 async function postData(url = '', data = {}) {
   try {
     const res = await fetch(`${BASE_API}${url}`, {
@@ -20,7 +18,7 @@ async function postData(url = '', data = {}) {
   }
 }
 
-// POST FormData helper (signup, transactions)
+// Helper: POST FormData (signup, transactions)
 async function postFormData(url = '', formData) {
   try {
     const res = await fetch(`${BASE_API}${url}`, {

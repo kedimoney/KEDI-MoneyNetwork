@@ -1,49 +1,61 @@
-// Dynamic base URL for backend
+// frontend/main.js
+
+// Base API URL (localhost vs deployed)
 const BASE_API = window.location.hostname.includes("localhost")
   ? "http://localhost:3000"
   : "https://kedi-moneynetwork.onrender.com";
 
-// POST JSON helper
+// POST JSON helper (login, etc)
 async function postData(url = '', data = {}) {
-  const response = await fetch(`${BASE_API}${url}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  return response.json();
+  try {
+    const res = await fetch(`${BASE_API}${url}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return await res.json();
+  } catch (err) {
+    alert("Ikibazo! Network Error. Gerageza kongera.");
+    console.error(err);
+  }
 }
 
-// POST FormData helper
+// POST FormData helper (signup, transactions)
 async function postFormData(url = '', formData) {
-  const response = await fetch(`${BASE_API}${url}`, {
-    method: "POST",
-    body: formData
-  });
-  return response.json();
+  try {
+    const res = await fetch(`${BASE_API}${url}`, {
+      method: "POST",
+      body: formData,
+    });
+    return await res.json();
+  } catch (err) {
+    alert("Ikibazo! Network Error. Gerageza kongera.");
+    console.error(err);
+  }
 }
 
-// Login handler
+// LOGIN page
 if (window.location.pathname.includes("login.html")) {
   const form = document.querySelector("form");
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const username = document.querySelector("#username").value;
-      const password = document.querySelector("#password").value;
+      const username = document.querySelector("#username").value.trim();
+      const password = document.querySelector("#password").value.trim();
 
       const result = await postData("/api/login", { username, password });
 
-      if (result.success) {
+      if (result?.success) {
         localStorage.setItem("user", username);
         window.location.href = "dashboard.html";
       } else {
-        alert("Login failed! Please check your credentials.");
+        alert("Login failed! Ongera ugenzure izina cyangwa ijambo banga.");
       }
     });
   }
 }
 
-// Signup handler
+// SIGNUP page (with images)
 if (window.location.pathname.includes("signup.html")) {
   const form = document.querySelector("form");
   if (form) {
@@ -53,17 +65,17 @@ if (window.location.pathname.includes("signup.html")) {
 
       const result = await postFormData("/api/signup", formData);
 
-      if (result.referralId) {
-        alert("Signup successful! Your referral ID: " + result.referralId);
+      if (result?.referralId) {
+        alert("Signup Success! Referral ID yawe: " + result.referralId);
         window.location.href = "login.html";
       } else {
-        alert("Signup failed! " + (result.message || "Unknown error."));
+        alert("Signup Failed: " + (result?.message || "Unknown error."));
       }
     });
   }
 }
 
-// Transaction forms handler
+// TRANSACTION forms (kubitsa, kubikuza, kugurizwa)
 if (
   window.location.pathname.includes("fomukw.html") ||
   window.location.pathname.includes("kubikuza.html") ||
@@ -74,24 +86,25 @@ if (
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const formData = new FormData(form);
-      formData.append("user", localStorage.getItem("user"));
+      formData.append("user", localStorage.getItem("user") || "unknown");
 
       const result = await postFormData("/api/submit", formData);
 
-      if (result.success) {
-        alert("Transaction submitted!");
+      if (result?.success) {
+        alert("Transaction submitted neza!");
+        form.reset();
       } else {
-        alert("Failed to submit transaction: " + result.message);
+        alert("Transaction Failed: " + (result?.message || "Unknown error."));
       }
     });
   }
 }
 
-// Dashboard: Load transaction history
+// DASHBOARD: Load transaction history
 if (window.location.pathname.includes("dashboard.html")) {
   const user = localStorage.getItem("user");
   if (user) {
-    fetch(`${BASE_API}/api/history?user=${encodeURIComponent(user)}`)
+    fetch(`${BASE_API}/api/history?user=${user}`)
       .then(res => res.json())
       .then(data => {
         const table = document.querySelector("#history");
@@ -111,7 +124,7 @@ if (window.location.pathname.includes("dashboard.html")) {
   }
 }
 
-// Show logged-in user name
+// Show logged-in user name if available
 document.addEventListener("DOMContentLoaded", () => {
   const user = localStorage.getItem("user");
   if (user && document.getElementById("user-name")) {
@@ -119,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Logout
+// LOGOUT function
 function logout() {
   localStorage.removeItem("user");
   window.location.href = "login.html";

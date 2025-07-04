@@ -45,7 +45,7 @@ if (window.location.pathname.includes("login.html")) {
   }
 }
 
-// ✅ Signup Handler
+// ✅ Signup Handler (for file uploads)
 if (window.location.pathname.includes("signup.html")) {
   const form = document.querySelector("form");
   if (form) {

@@ -6,27 +6,26 @@ const path = require('path');
 const dotenv = require('dotenv');
 const User = require('./models/user');
 
-// Load environment variables
 dotenv.config();
 
-const app = express(); // ✅ Reba ko iyi line iri mbere y'ibindi byose ukoresha `app`
+const app = express();
 
-// Serve frontend static files
-app.use('/', express.static(path.join(__dirname, 'frontend')));
+// ✅ Serve static frontend files
+app.use(express.static(path.join(__dirname, 'frontend')));
 
-// Middlewares
+// ✅ Middlewares
 app.use(express.json());
 app.use(cors());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Connect to MongoDB
+// ✅ Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// Multer configuration
+// ✅ Multer config
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/');
@@ -36,16 +35,15 @@ const storage = multer.diskStorage({
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
-
 const upload = multer({ storage: storage });
 
-// Generate referral ID
+// ✅ Generate referral ID
 function generateReferralID() {
   const randomNum = Math.floor(10000 + Math.random() * 90000);
   return `KEDI${randomNum}RW`;
 }
 
-// Signup route
+// ✅ Signup API
 app.post('/api/signup', upload.fields([
   { name: 'profilePhoto', maxCount: 1 },
   { name: 'idFront', maxCount: 1 },
@@ -73,7 +71,7 @@ app.post('/api/signup', upload.fields([
       village,
       idNumber,
       username,
-      password, // ⚠️ Hash password in production!
+      password,
       referralId: referralId || generateReferralID(),
       referrerFirstName,
       referrerLastName,
@@ -88,22 +86,23 @@ app.post('/api/signup', upload.fields([
     await newUser.save();
 
     res.status(201).json({
+      success: true,
       message: 'User registered successfully!',
       referralId: newUser.referralId
     });
 
   } catch (err) {
-    console.error('Error during signup:', err);
+    console.error('❌ Error during signup:', err);
     res.status(500).json({ message: 'Internal server error.' });
   }
 });
 
-// Default route
-app.get('/', (req, res) => {
-  res.send('API is running...');
+// ✅ Serve frontend index.html as fallback
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
-// Start server
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

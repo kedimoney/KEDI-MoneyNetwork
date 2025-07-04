@@ -1,21 +1,19 @@
-// ✅ Dynamic base URL ya backend (ikora local na online)
+// Dynamic base URL for backend
 const BASE_API = window.location.hostname.includes("localhost")
   ? "http://localhost:3000"
   : "https://kedi-moneynetwork.onrender.com";
 
-// ✅ Helper: POST request (JSON)
+// POST JSON helper
 async function postData(url = '', data = {}) {
   const response = await fetch(`${BASE_API}${url}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   return response.json();
 }
 
-// ✅ Helper: POST request for FormData (e.g. images)
+// POST FormData helper
 async function postFormData(url = '', formData) {
   const response = await fetch(`${BASE_API}${url}`, {
     method: "POST",
@@ -24,7 +22,7 @@ async function postFormData(url = '', formData) {
   return response.json();
 }
 
-// ✅ Login Handler
+// Login handler
 if (window.location.pathname.includes("login.html")) {
   const form = document.querySelector("form");
   if (form) {
@@ -45,7 +43,7 @@ if (window.location.pathname.includes("login.html")) {
   }
 }
 
-// ✅ Signup Handler (for file uploads)
+// Signup handler
 if (window.location.pathname.includes("signup.html")) {
   const form = document.querySelector("form");
   if (form) {
@@ -65,7 +63,7 @@ if (window.location.pathname.includes("signup.html")) {
   }
 }
 
-// ✅ Transaction Forms
+// Transaction forms handler
 if (
   window.location.pathname.includes("fomukw.html") ||
   window.location.pathname.includes("kubikuza.html") ||
@@ -89,33 +87,31 @@ if (
   }
 }
 
-// ✅ Dashboard: Load History
+// Dashboard: Load transaction history
 if (window.location.pathname.includes("dashboard.html")) {
-  fetch(`${BASE_API}/api/history`)
-    .then((res) => res.json())
-    .then((data) => {
-      const user = localStorage.getItem("user");
-      const table = document.querySelector("#history");
-      if (table && Array.isArray(data)) {
-        data
-          .filter((entry) => entry.user === user)
-          .forEach((entry) => {
+  const user = localStorage.getItem("user");
+  if (user) {
+    fetch(`${BASE_API}/api/history?user=${encodeURIComponent(user)}`)
+      .then(res => res.json())
+      .then(data => {
+        const table = document.querySelector("#history");
+        if (table && Array.isArray(data)) {
+          data.forEach(entry => {
             const row = document.createElement("tr");
-            Object.values(entry).forEach((val) => {
+            Object.values(entry).forEach(val => {
               const td = document.createElement("td");
               td.textContent = val;
               row.appendChild(td);
             });
             table.appendChild(row);
           });
-      }
-    })
-    .catch((err) => {
-      console.error("Failed to load history:", err);
-    });
+        }
+      })
+      .catch(err => console.error("Failed to load history:", err));
+  }
 }
 
-// ✅ Show Logged-in User Name
+// Show logged-in user name
 document.addEventListener("DOMContentLoaded", () => {
   const user = localStorage.getItem("user");
   if (user && document.getElementById("user-name")) {
@@ -123,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ✅ Logout
+// Logout
 function logout() {
   localStorage.removeItem("user");
   window.location.href = "login.html";

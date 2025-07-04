@@ -6,25 +6,18 @@ const path = require('path');
 const dotenv = require('dotenv');
 const User = require('./models/user');
 const Transaction = require('./models/transaction');
+
 dotenv.config();
 
 const app = express();
 
-// Middlewares
+// Middleware
 app.use(express.json());
 app.use(cors());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(path.join(__dirname, 'frontend')));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('✅ MongoDB connected'))
-.catch((err) => console.error('❌ MongoDB connection error:', err));
-
-// Multer config
+// Multer setup for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => {
@@ -34,7 +27,15 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Generate referral ID
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('✅ MongoDB connected'))
+.catch((err) => console.error('❌ MongoDB connection error:', err));
+
+// Generate referral ID helper
 function generateReferralID() {
   return `KEDI${Math.floor(10000 + Math.random() * 90000)}RW`;
 }
@@ -58,7 +59,11 @@ app.post('/api/signup', upload.fields([
       return res.status(400).json({ message: 'All image files are required.' });
     }
 
-    // Optional: check if user exists here (username unique)
+    // Optional: Check if username exists
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username already exists.' });
+    }
 
     const newUser = new User({
       firstName, lastName, district, sector, cell, village,
@@ -75,8 +80,10 @@ app.post('/api/signup', upload.fields([
 
     await newUser.save();
 
-    res.status(201).json({ message: 'User registered successfully!', referralId: newUser.referralId });
-
+    res.status(201).json({
+      message: 'User registered successfully!',
+      referralId: newUser.referralId
+    });
   } catch (err) {
     console.error('❌ Signup error:', err);
     res.status(500).json({ message: 'Server error during signup.' });
@@ -87,7 +94,7 @@ app.post('/api/signup', upload.fields([
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user = await User.findOne({ username, password }); // ⚠️ Password should be hashed in production!
+    const user = await User.findOne({ username, password }); // ⚠️ Hash passwords in production!
 
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid username or password.' });
@@ -100,10 +107,9 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Transaction submission route
+// Submit transaction
 app.post('/api/submit', upload.none(), async (req, res) => {
   try {
-    // Expecting form fields including 'user', 'type', 'amount', etc.
     const data = req.body;
 
     const newTransaction = new Transaction({
@@ -120,7 +126,7 @@ app.post('/api/submit', upload.none(), async (req, res) => {
   }
 });
 
-// History retrieval route
+// Get history by user (expects ?user=username in query string)
 app.get('/api/history', async (req, res) => {
   try {
     const user = req.query.user;
@@ -134,12 +140,12 @@ app.get('/api/history', async (req, res) => {
   }
 });
 
-// API test route
+// API test
 app.get('/api', (req, res) => {
   res.send('✅ API is working');
 });
 
-// Frontend fallback for SPA routes
+// Fallback for frontend SPA routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });

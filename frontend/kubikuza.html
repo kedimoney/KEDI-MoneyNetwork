@@ -102,15 +102,15 @@
     <nav>
       <a href="kwizigama.html">Ahabanza</a>
       <a href="#">Ibyerekeye</a>
-      <a href="log.html">Sign up</a>
-      <a href="login.html">Sign in</a>
+      <a href="tree.html">Iyandikishe</a>
+      <a href="login.html">Injira</a>
     </nav>
   </header>
 
   <!-- Saving Form Section -->
   <section class="form-container">
-    <form action="submit_kwizigama.php" method="POST">
-      <h2>Fomu yo Kubikuza</h2>
+    <form id="kwizigamaForm" enctype="multipart/form-data">
+      <h2>Fomu yo Kwizigama</h2>
 
       <label for="first-name">Izina Ribanza</label>
       <input type="text" id="first-name" name="first_name" required placeholder="Andika izina ribanza">
@@ -137,5 +137,7 @@
       <input type="submit" value="Ohereza Ibisabwa">
     </form>
   </section>
+
+  <script src="main.js"></script>
 </body>
 </html>

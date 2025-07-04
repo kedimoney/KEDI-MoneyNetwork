@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tree Plan Signup</title>
+  <title>Kwiyandikisha muri Tree Plan</title>
   <style>
     body {
       background-color: #f0f8ff;
@@ -69,7 +69,7 @@
   </header>
 
   <h2>Kwiyandikisha muri Tree Plan</h2>
-  <form id="treeSignupForm" enctype="multipart/form-data">
+  <form enctype="multipart/form-data">
     <label>First Name: <input type="text" name="firstName" required /></label>
     <label>Last Name: <input type="text" name="lastName" required /></label>
     <label>Akarere: <input type="text" name="district" required /></label>
@@ -88,49 +88,14 @@
     <label>Referrer First Name: <input type="text" name="referrerFirstName" /></label>
     <label>Referrer Last Name: <input type="text" name="referrerLastName" /></label>
 
-    <p>Nariyandikisije? <a href="login.html">Iyandikishe hano</a></p>
+    <p>Nariyandikisije? <a href="login.html">Injira hano</a></p>
 
     <button type="submit">Ohereza</button>
   </form>
 
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-  <script>
-  document.getElementById('treeSignupForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    const form = document.getElementById('treeSignupForm');
-    const formData = new FormData(form);
-
-    try {
-      const response = await fetch('http://localhost:3000/tree_signup', {
-        method: 'POST',
-        body: formData
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Wiyandikishije neza!',
-          html: `Referral ID yawe ni: <strong>${result.referralId}</strong>`,
-          timer: 3000,
-          timerProgressBar: true,
-          showConfirmButton: false
-        });
-
-        setTimeout(() => {
-          window.location.href = 'login.html';
-        }, 3000);
-      } else {
-        Swal.fire('Ikibazo!', result.message, 'error');
-      }
-    } catch (error) {
-      Swal.fire('Ikibazo!', 'Network Error. Gerageza kongera.', 'error');
-    }
-  });
-  </script>
+  <!-- JS ishobora gufasha tree form: -->
+  <script src="main.js"></script>
 </body>
 </html>

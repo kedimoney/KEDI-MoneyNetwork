@@ -1,13 +1,13 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
-const dotenv = require('dotenv');
+
 const User = require('./models/user');
 const Transaction = require('./models/transaction');
 
-dotenv.config();
 const app = express();
 
 // Middlewares
@@ -15,33 +15,33 @@ app.use(express.json());
 app.use(cors());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 👉 Serve frontend static files (frontend folder is outside backend)
+// Serve frontend static files (frontend folder iri inyuma ya backend)
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
-// Connect to MongoDB
+// MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch((err) => console.error('❌ MongoDB connection error:', err));
+.then(() => console.log('✅ MongoDB connected'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
 
-// Multer configuration
+// Multer config for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  },
+  }
 });
 const upload = multer({ storage });
 
-// Generate referral ID
+// Referral ID generator
 function generateReferralID() {
   return `KEDI${Math.floor(10000 + Math.random() * 90000)}RW`;
 }
 
-// ✅ Signup Route
+// Signup route with images
 app.post('/api/signup', upload.fields([
   { name: 'profilePhoto', maxCount: 1 },
   { name: 'idFront', maxCount: 1 },
@@ -55,14 +55,21 @@ app.post('/api/signup', upload.fields([
       referrerFirstName, referrerLastName,
     } = req.body;
 
+    // Check files
     const files = req.files;
     if (!files.profilePhoto || !files.idFront || !files.idBack || !files.paymentScreenshot) {
       return res.status(400).json({ message: 'All image files are required.' });
     }
 
+    // Check if username exists
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username already exists.' });
+    }
+
     const newUser = new User({
       firstName, lastName, district, sector, cell, village,
-      idNumber, username, password,
+      idNumber, username, password,  // ⚠️ Use hashing in prod!
       referralId: referralId || generateReferralID(),
       referrerFirstName, referrerLastName,
       profilePhoto: files.profilePhoto[0].path,
@@ -74,6 +81,7 @@ app.post('/api/signup', upload.fields([
     });
 
     await newUser.save();
+
     res.status(201).json({ message: 'User registered successfully!', referralId: newUser.referralId });
 
   } catch (err) {
@@ -82,11 +90,13 @@ app.post('/api/signup', upload.fields([
   }
 });
 
-// ✅ Login Route
+// Login route
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;
+    // ⚠️ Hash passwords in production!
     const user = await User.findOne({ username, password });
+
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid username or password.' });
     }
@@ -98,15 +108,18 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// ✅ Submit Transaction
+// Submit transaction route
 app.post('/api/submit', upload.none(), async (req, res) => {
   try {
     const data = req.body;
+
     const newTransaction = new Transaction({
       ...data,
       date: new Date(),
     });
+
     await newTransaction.save();
+
     res.json({ success: true, message: 'Transaction saved.' });
   } catch (err) {
     console.error('❌ Transaction error:', err);
@@ -114,7 +127,7 @@ app.post('/api/submit', upload.none(), async (req, res) => {
   }
 });
 
-// ✅ Get Transaction History
+// Get transaction history by user
 app.get('/api/history', async (req, res) => {
   try {
     const user = req.query.user;
@@ -128,18 +141,16 @@ app.get('/api/history', async (req, res) => {
   }
 });
 
-// ✅ API Test
+// API test
 app.get('/api', (req, res) => {
   res.send('✅ API is working');
 });
 
-// ✅ Catch-all route to serve frontend (for SPA)
+// SPA fallback
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
 });
 
-// ✅ Start server
+// Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

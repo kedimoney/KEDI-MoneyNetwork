@@ -6,26 +6,27 @@ const path = require('path');
 const dotenv = require('dotenv');
 const User = require('./models/user');
 
+// Load environment variables
 dotenv.config();
 
 const app = express();
 
-// ✅ Serve static frontend files
-app.use(express.static(path.join(__dirname, 'frontend')));
-
-// ✅ Middlewares
+// Middleware
 app.use(express.json());
 app.use(cors());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ✅ Connect to MongoDB
+// Serve static frontend files from ../frontend (relative to backend)
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+// Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// ✅ Multer config
+// Multer setup
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/');
@@ -37,13 +38,13 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// ✅ Generate referral ID
+// Generate referral ID
 function generateReferralID() {
   const randomNum = Math.floor(10000 + Math.random() * 90000);
   return `KEDI${randomNum}RW`;
 }
 
-// ✅ Signup API
+// Signup route
 app.post('/api/signup', upload.fields([
   { name: 'profilePhoto', maxCount: 1 },
   { name: 'idFront', maxCount: 1 },
@@ -57,7 +58,6 @@ app.post('/api/signup', upload.fields([
     } = req.body;
 
     const files = req.files;
-
     if (!files.profilePhoto || !files.idFront || !files.idBack || !files.paymentScreenshot) {
       return res.status(400).json({ message: 'All images are required.' });
     }
@@ -86,7 +86,6 @@ app.post('/api/signup', upload.fields([
     await newUser.save();
 
     res.status(201).json({
-      success: true,
       message: 'User registered successfully!',
       referralId: newUser.referralId
     });
@@ -97,12 +96,12 @@ app.post('/api/signup', upload.fields([
   }
 });
 
-// ✅ Serve frontend index.html as fallback
+// Default catch-all route (must be after API routes)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// ✅ Start server
+// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

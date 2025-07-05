@@ -54,7 +54,7 @@ if (window.location.pathname.includes("login.html")) {
 }
 
 // SIGNUP page (with images)
-if (window.location.pathname.includes("signup.html")) {
+if (window.location.pathname.includes("signup.html") || window.location.pathname.includes("tree.html")) {
   const form = document.querySelector("form");
   if (form) {
     form.addEventListener("submit", async (e) => {
@@ -64,10 +64,19 @@ if (window.location.pathname.includes("signup.html")) {
       const result = await postFormData("/api/signup", formData);
 
       if (result?.referralId) {
-        alert("Signup Success! Referral ID yawe: " + result.referralId);
-        window.location.href = "login.html";
+        Swal.fire({
+          icon: 'success',
+          title: 'Wiyandikishije neza!',
+          html: `Referral ID yawe ni: <strong>${result.referralId}</strong>`,
+          timer: 3000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 3000);
       } else {
-        alert("Signup Failed: " + (result?.message || "Unknown error."));
+        Swal.fire("Signup Failed", result?.message || "Unknown error.", "error");
       }
     });
   }
@@ -89,10 +98,10 @@ if (
       const result = await postFormData("/api/submit", formData);
 
       if (result?.success) {
-        alert("Transaction submitted neza!");
+        Swal.fire("Byoherejwe", "Transaction submitted neza!", "success");
         form.reset();
       } else {
-        alert("Transaction Failed: " + (result?.message || "Unknown error."));
+        Swal.fire("Transaction Failed", result?.message || "Unknown error.", "error");
       }
     });
   }

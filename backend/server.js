@@ -1,143 +1,118 @@
-require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
-
 const User = require('./models/user');
 const Transaction = require('./models/transaction');
 
+dotenv.config();
+
 const app = express();
 
-// Middlewares
+// Middleware
 app.use(express.json());
 app.use(cors());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Serve frontend static files (frontend folder iri inyuma ya backend)
-app.use(express.static(path.join(__dirname, '..', 'frontend')));
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-})
-.then(() => console.log('✅ MongoDB connected'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
+}).then(() => console.log('✅ MongoDB connected'))
+  .catch((err) => console.error('❌ MongoDB connection error:', err));
 
-// Multer config for file uploads
+// Multer setup
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname),
 });
 const upload = multer({ storage });
 
-// Referral ID generator
+// Generate Referral ID
 function generateReferralID() {
   return `KEDI${Math.floor(10000 + Math.random() * 90000)}RW`;
 }
 
-// Signup route with images
+// SIGNUP Route (for tree.html or signup.html)
 app.post('/api/signup', upload.fields([
   { name: 'profilePhoto', maxCount: 1 },
   { name: 'idFront', maxCount: 1 },
   { name: 'idBack', maxCount: 1 },
-  { name: 'paymentScreenshot', maxCount: 1 },
+  { name: 'paymentScreenshot', maxCount: 1 }
 ]), async (req, res) => {
   try {
     const {
       firstName, lastName, district, sector, cell, village,
       idNumber, username, password, referralId,
-      referrerFirstName, referrerLastName,
+      referrerFirstName, referrerLastName, amount
     } = req.body;
 
-    // Check files
     const files = req.files;
     if (!files.profilePhoto || !files.idFront || !files.idBack || !files.paymentScreenshot) {
       return res.status(400).json({ message: 'All image files are required.' });
     }
 
-    // Check if username exists
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(400).json({ message: 'Username already exists.' });
-    }
+    const existing = await User.findOne({ username });
+    if (existing) return res.status(400).json({ message: 'Username already exists.' });
 
     const newUser = new User({
-      firstName, lastName, district, sector, cell, village,
-      idNumber, username, password,  // ⚠️ Use hashing in prod!
-      referralId: referralId || generateReferralID(),
-      referrerFirstName, referrerLastName,
+      firstName, lastName, district, sector, cell, village, idNumber,
+      username, password, referralId: referralId || generateReferralID(),
+      referrerFirstName, referrerLastName, amount,
       profilePhoto: files.profilePhoto[0].path,
       idFront: files.idFront[0].path,
       idBack: files.idBack[0].path,
       paymentScreenshot: files.paymentScreenshot[0].path,
-      amount: 10100,
-      status: 'pending',
     });
 
     await newUser.save();
 
     res.status(201).json({ message: 'User registered successfully!', referralId: newUser.referralId });
-
   } catch (err) {
     console.error('❌ Signup error:', err);
     res.status(500).json({ message: 'Server error during signup.' });
   }
 });
 
-// Login route
+// LOGIN Route
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    // ⚠️ Hash passwords in production!
-    const user = await User.findOne({ username, password });
+    const user = await User.findOne({ username, password }); // NB: Hashing should be used
+    if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
 
-    if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid username or password.' });
-    }
-
-    res.json({ success: true, message: 'Login successful.' });
+    res.status(200).json({ success: true, message: 'Login successful', user });
   } catch (err) {
     console.error('❌ Login error:', err);
-    res.status(500).json({ success: false, message: 'Server error during login.' });
+    res.status(500).json({ success: false, message: 'Server error during login' });
   }
 });
 
-// Submit transaction route
+// TRANSACTION submission route (kubitsa, kubikuza, kugurizwa)
 app.post('/api/submit', upload.none(), async (req, res) => {
   try {
     const data = req.body;
-
-    const newTransaction = new Transaction({
-      ...data,
-      date: new Date(),
-    });
-
+    const newTransaction = new Transaction(data);
     await newTransaction.save();
-
-    res.json({ success: true, message: 'Transaction saved.' });
+    res.status(201).json({ success: true, message: 'Transaction submitted!' });
   } catch (err) {
     console.error('❌ Transaction error:', err);
-    res.status(500).json({ success: false, message: 'Server error during transaction.' });
+    res.status(500).json({ success: false, message: 'Failed to save transaction' });
   }
 });
 
-// Get transaction history by user
+// History route
 app.get('/api/history', async (req, res) => {
   try {
     const user = req.query.user;
-    if (!user) return res.status(400).json({ message: 'User query param required' });
-
-    const history = await Transaction.find({ user }).sort({ date: -1 });
+    const history = await Transaction.find({ user }).sort({ createdAt: -1 });
     res.json(history);
   } catch (err) {
-    console.error('❌ History error:', err);
-    res.status(500).json({ message: 'Server error fetching history.' });
+    console.error('❌ History fetch error:', err);
+    res.status(500).json({ message: 'Failed to fetch history' });
   }
 });
 
@@ -146,11 +121,14 @@ app.get('/api', (req, res) => {
   res.send('✅ API is working');
 });
 
-// SPA fallback
+// Serve frontend fallback (Single Page App support)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
+

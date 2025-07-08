@@ -4,100 +4,93 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kwiyandikisha – Kedi Money Network</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:400,600&display=swap">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f0f8ff;
-      padding: 0;
+      font-family: sans-serif;
+      background: #f0f8ff;
       margin: 0;
+      padding: 0;
     }
-
-    header {
-      background-color: #2e8b57;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-    }
-
     form {
-      background-color: white;
       max-width: 600px;
-      margin: 2rem auto;
+      margin: auto;
+      background: white;
       padding: 2rem;
       border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
-
-    h2 {
-      text-align: center;
-      color: #2e8b57;
-    }
-
-    label {
+    input, label, select, button {
       display: block;
+      width: 100%;
       margin-top: 1rem;
     }
-
-    input, select {
-      width: 100%;
-      padding: 0.75rem;
-      margin-top: 0.25rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
     button {
-      margin-top: 1.5rem;
-      background-color: #2e8b57;
+      background-color: green;
       color: white;
-      border: none;
       padding: 1rem;
-      width: 100%;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
     }
-
-    button:hover {
-      background-color: #246b45;
+    .info-box {
+      background-color: #e6f2ff;
+      padding: 1rem;
+      margin-top: 0.5rem;
+      border-left: 4px solid #0077cc;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>KEDI Money Network</h1>
-  </header>
+  <h1 style="text-align:center">KEDI Money Network – Signup</h1>
+  <form id="signupForm">
+    <label>First Name <input name="firstName" required></label>
+    <label>Last Name <input name="lastName" required></label>
+    <label>Akarere <input name="district" required></label>
+    <label>Umurenge <input name="sector" required></label>
+    <label>Akagari <input name="cell" required></label>
+    <label>Umudugudu <input name="village" required></label>
+    <label>ID Number <input name="idNumber" required></label>
+    <label>Username <input name="username" required></label>
+    <label>Password <input name="password" type="password" required></label>
+    <label>Referral ID <input name="referralId"></label>
+    <label>Referrer First Name <input name="referrerFirstName"></label>
+    <label>Referrer Last Name <input name="referrerLastName"></label>
+    <label>Amafaranga <input name="amount" value="10100" readonly></label>
 
-  <form id="treeSignupForm" enctype="multipart/form-data">
-    <h2>Kwiyandikisha muri Tree Plan</h2>
+    <label>Uburyo bwo Kwishyura (Payment Method)
+      <select name="paymentMethod" id="paymentMethod" required>
+        <option value="">-- Hitamo --</option>
+        <option value="mobile">Mobile Money</option>
+        <option value="bank">Bank Transfer</option>
+      </select>
+    </label>
 
-    <label>First Name <input type="text" name="firstName" required></label>
-    <label>Last Name <input type="text" name="lastName" required></label>
-    <label>Akarere <input type="text" name="district" required></label>
-    <label>Umurenge <input type="text" name="sector" required></label>
-    <label>Akagari <input type="text" name="cell" required></label>
-    <label>Umudugudu <input type="text" name="village" required></label>
-    <label>ID Number <input type="text" name="idNumber" required></label>
-    
-    <label>Profile Photo <input type="file" name="profilePhoto" accept="image/*" required></label>
-    <label>ID Front <input type="file" name="idFront" accept="image/*" required></label>
-    <label>ID Back <input type="file" name="idBack" accept="image/*" required></label>
-    <label>Screenshot y’Ubwishyu <input type="file" name="paymentScreenshot" accept="image/*" required></label>
+    <div id="paymentInfo" class="info-box" style="display: none;"></div>
 
-    <label>Amafaranga (readonly) <input type="number" name="amount" value="10100" readonly></label>
-    <label>Username <input type="text" name="username" required></label>
-    <label>Password <input type="password" name="password" required></label>
-    <label>Referral ID (Optional) <input type="text" name="referralId"></label>
-    <label>Referrer First Name <input type="text" name="referrerFirstName"></label>
-    <label>Referrer Last Name <input type="text" name="referrerLastName"></label>
+    <label>TXN ID <input name="txnId" required placeholder="Urugero: MTN4Y7362YI" /></label>
 
     <button type="submit">Ohereza</button>
+    <div class="signup-link">
+      <p>Nariyandikishije <a href="login.html">Injira hano</a></p>
+    </div>  
   </form>
 
-  <!-- SweetAlert -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <!-- JS File -->
+
+  <script>
+    const paymentSelect = document.getElementById('paymentMethod');
+    const infoDiv = document.getElementById('paymentInfo');
+
+    paymentSelect.addEventListener('change', () => {
+      const value = paymentSelect.value;
+      if (value === "mobile") {
+        infoDiv.innerHTML = "👉 Uko wishyura kuri MTN: <strong>*182*8*1*1594092#</strong>";
+        infoDiv.style.display = "block";
+      } else if (value === "bank") {
+        infoDiv.innerHTML = "🏦 Bank Transfer: <strong>Coming soon...</strong>";
+        infoDiv.style.display = "block";
+      } else {
+        infoDiv.style.display = "none";
+      }
+    });
+  </script>
+
   <script src="main.js"></script>
 </body>
 </html>

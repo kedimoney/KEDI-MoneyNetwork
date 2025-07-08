@@ -3,99 +3,94 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kwiyandikisha muri Tree Plan</title>
+  <title>Kwiyandikisha – Kedi Money Network</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     body {
-      background-color: #f0f8ff;
-      font-family: Arial, sans-serif;
-      color: #333;
+      font-family: sans-serif;
+      background: #f0f8ff;
+      margin: 0;
       padding: 0;
-      margin: 0;
-    }
-    header {
-      background-color: #2e8b57;
-      color: white;
-      padding: 15px 20px;
-      text-align: center;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 24px;
-    }
-    h2 {
-      color: #2e8b57;
-      text-align: center;
-      margin-top: 20px;
     }
     form {
-      background-color: #ffffff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       max-width: 600px;
-      margin: 20px auto;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
     }
-    label {
+    input, label, select, button {
       display: block;
-      margin-bottom: 10px;
-    }
-    input[type="text"],
-    input[type="password"],
-    input[type="number"],
-    input[type="file"] {
       width: 100%;
-      padding: 8px;
-      margin-top: 4px;
-      margin-bottom: 12px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      margin-top: 1rem;
     }
     button {
-      background-color: #2e8b57;
+      background-color: green;
       color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+      padding: 1rem;
     }
-    button:hover {
-      background-color: #246b45;
+    .info-box {
+      background-color: #e6f2ff;
+      padding: 1rem;
+      margin-top: 0.5rem;
+      border-left: 4px solid #0077cc;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>KEDI MoneyNetwork</h1>
-  </header>
+  <h1 style="text-align:center">KEDI Money Network – Signup</h1>
+  <form id="signupForm">
+    <label>First Name <input name="firstName" required></label>
+    <label>Last Name <input name="lastName" required></label>
+    <label>Akarere <input name="district" required></label>
+    <label>Umurenge <input name="sector" required></label>
+    <label>Akagari <input name="cell" required></label>
+    <label>Umudugudu <input name="village" required></label>
+    <label>ID Number <input name="idNumber" required></label>
+    <label>Username <input name="username" required></label>
+    <label>Password <input name="password" type="password" required></label>
+    <label>Referral ID <input name="referralId"></label>
+    <label>Referrer First Name <input name="referrerFirstName"></label>
+    <label>Referrer Last Name <input name="referrerLastName"></label>
+    <label>Amafaranga <input name="amount" value="10100" readonly></label>
 
-  <h2>Kwiyandikisha muri Tree Plan</h2>
-  <form enctype="multipart/form-data">
-    <label>First Name: <input type="text" name="firstName" required /></label>
-    <label>Last Name: <input type="text" name="lastName" required /></label>
-    <label>Akarere: <input type="text" name="district" required /></label>
-    <label>Umurenge: <input type="text" name="sector" required /></label>
-    <label>Akagari: <input type="text" name="cell" required /></label>
-    <label>Umudugudu: <input type="text" name="village" required /></label>
-    <label>ID/Passport Number: <input type="text" name="idNumber" required /></label>
-    <label>Profile Photo: <input type="file" name="profilePhoto" accept="image/*" required /></label>
-    <label>ID Front: <input type="file" name="idFront" accept="image/*" required /></label>
-    <label>ID Back: <input type="file" name="idBack" accept="image/*" required /></label>
-    <label>Payment Screenshot: <input type="file" name="paymentScreenshot" accept="image/*" required /></label>
-    <label>Amount (FRW): <input type="number" name="amount" value="10100" readonly /></label>
-    <label>Username: <input type="text" name="username" required /></label>
-    <label>Password: <input type="password" name="password" required /></label>
-    <label>Referral ID (optional): <input type="text" name="referralId" /></label>
-    <label>Referrer First Name: <input type="text" name="referrerFirstName" /></label>
-    <label>Referrer Last Name: <input type="text" name="referrerLastName" /></label>
+    <label>Uburyo bwo Kwishyura (Payment Method)
+      <select name="paymentMethod" id="paymentMethod" required>
+        <option value="">-- Hitamo --</option>
+        <option value="mobile">Mobile Money</option>
+        <option value="bank">Bank Transfer</option>
+      </select>
+    </label>
 
-    <p>Nariyandikisije? <a href="login.html">Injira hano</a></p>
+    <div id="paymentInfo" class="info-box" style="display: none;"></div>
+
+    <label>TXN ID <input name="txnId" required placeholder="Urugero: MTN4Y7362YI" /></label>
 
     <button type="submit">Ohereza</button>
+    <div class="signup-link">
+      <p>Nariyandikishije <a href="login.html">Injira hano</a></p>
+    </div>  
   </form>
 
-  <!-- SweetAlert2 -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <!-- JS ishobora gufasha tree form: -->
+
+  <script>
+    const paymentSelect = document.getElementById('paymentMethod');
+    const infoDiv = document.getElementById('paymentInfo');
+
+    paymentSelect.addEventListener('change', () => {
+      const value = paymentSelect.value;
+      if (value === "mobile") {
+        infoDiv.innerHTML = "👉 Uko wishyura kuri MTN: <strong>*182*8*1*1594092#</strong>";
+        infoDiv.style.display = "block";
+      } else if (value === "bank") {
+        infoDiv.innerHTML = "🏦 Bank Transfer: <strong>Coming soon...</strong>";
+        infoDiv.style.display = "block";
+      } else {
+        infoDiv.style.display = "none";
+      }
+    });
+  </script>
+
   <script src="main.js"></script>
 </body>
 </html>

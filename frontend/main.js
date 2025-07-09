@@ -1,153 +1,164 @@
 console.log("🔥 main.js loaded!");
 
-const BASE_API = window.location.hostname.includes("localhost")
+const BASE_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:3000"
   : "https://kedi-moneynetwork.onrender.com";
 
-// Helper: POST JSON (signup, login)
-async function postJson(url = '', data = {}) {
+// ✅ Signup form handler
+async function handleSignup(event) {
+  event.preventDefault();
+
+  const form = event.target;
+  const formData = {
+    firstName: form.firstName.value,
+    lastName: form.lastName.value,
+    district: form.district.value,
+    sector: form.sector.value,
+    cell: form.cell.value,
+    village: form.village.value,
+    idNumber: form.idNumber.value,
+    username: form.username.value,
+    password: form.password.value,
+    referralId: form.referralId.value,
+    amount: Number(form.amount.value),
+    paymentMethod: form.paymentMethod.value,
+    txnId: form.txnId.value
+  };
+
   try {
-    const res = await fetch(`${BASE_API}${url}`, {
+    const res = await fetch(`${BASE_URL}/api/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(formData)
     });
-    return await res.json();
-  } catch (err) {
-    alert("Ikibazo! Network Error. Gerageza kongera.");
-    console.error(err);
+
+    const data = await res.json();
+    if (data.success) {
+      alert("Account created! Your Referral ID is: " + data.referralId);
+      window.location.href = "login.html";
+    } else {
+      alert("Signup failed: " + (data.message || "Unknown error"));
+    }
+  } catch (error) {
+    alert("Server error during signup.");
   }
 }
 
-// Helper: POST FormData (transaction forms)
-async function postFormData(url = '', formData) {
+// ✅ Login handler
+async function handleLogin(event) {
+  event.preventDefault();
+
+  const form = event.target;
+  const username = form.username.value;
+  const password = form.password.value;
+
   try {
-    const res = await fetch(`${BASE_API}${url}`, {
+    const res = await fetch(`${BASE_URL}/api/login`, {
       method: "POST",
-      body: formData,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
     });
-    return await res.json();
-  } catch (err) {
-    alert("Ikibazo! Network Error. Gerageza kongera.");
-    console.error(err);
+
+    const data = await res.json();
+    if (data.success) {
+      alert("Login successful!");
+      localStorage.setItem("kediUser", username);
+      window.location.href = "dashboard.html";
+    } else {
+      alert("Login failed: " + data.message);
+    }
+  } catch (error) {
+    alert("Server error during login.");
   }
 }
 
-// LOGIN page
-if (window.location.pathname.includes("login.html")) {
-  const form = document.querySelector("form");
-  if (form) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const username = document.querySelector("#username").value.trim();
-      const password = document.querySelector("#password").value.trim();
+// ✅ Submit transaction
+async function handleTransactionSubmit(event) {
+  event.preventDefault();
 
-      const result = await postJson("/api/login", { username, password });
+  const form = event.target;
+  const user = localStorage.getItem("kediUser");
+  const txnData = {
+    user,
+    type: form.type.value,
+    amount: Number(form.amount.value),
+    txnId: form.txnId.value
+  };
 
-      if (result?.success) {
-        localStorage.setItem("user", username);
-        window.location.href = "dashboard.html";
-      } else {
-        alert("Login failed! Ongera ugenzure izina cyangwa ijambo banga.");
-      }
+  try {
+    const res = await fetch(`${BASE_URL}/api/submit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(txnData)
     });
+
+    const data = await res.json();
+    if (data.success) {
+      alert("Transaction submitted!");
+      form.reset();
+    } else {
+      alert("Transaction failed.");
+    }
+  } catch (error) {
+    alert("Error submitting transaction.");
   }
 }
 
-// SIGNUP page (JSON POST)
-if (window.location.pathname.includes("signup.html") || window.location.pathname.includes("tree.html")) {
-  const form = document.getElementById("signupForm");
-  if (form) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+// ✅ Load transaction history
+async function loadTransactionHistory() {
+  const user = localStorage.getItem("kediUser");
 
-      const formData = new FormData(form);
-      // Convert FormData to plain object for JSON
-      const data = {};
-      formData.forEach((value, key) => {
-        data[key] = value;
-      });
+  try {
+    const res = await fetch(`${BASE_URL}/api/history?user=${user}`);
+    const data = await res.json();
 
-      const result = await postJson("/api/signup", data);
-
-      if (result?.referralId) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Wiyandikishije neza!',
-          html: `Referral ID yawe ni: <strong>${result.referralId}</strong>`,
-          timer: 3000,
-          timerProgressBar: true,
-          showConfirmButton: false
-        });
-        setTimeout(() => {
-          window.location.href = "login.html";
-        }, 3000);
-      } else {
-        Swal.fire("Signup Failed", result?.message || "Unknown error.", "error");
-      }
-    });
+    const container = document.getElementById("transaction-history");
+    container.innerHTML = data.map(txn => `
+      <li>${txn.type} - ${txn.amount} RWF (${txn.txnId})</li>
+    `).join("");
+  } catch (error) {
+    console.error("Error fetching history:", error);
   }
 }
 
-// TRANSACTION forms (kubitsa, kubikuza, kugurizwa)
-if (
-  window.location.pathname.includes("fomukw.html") ||
-  window.location.pathname.includes("kubikuza.html") ||
-  window.location.pathname.includes("kugurizwa.html")
-) {
-  const form = document.querySelector("form");
-  if (form) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const formData = new FormData(form);
-      formData.append("user", localStorage.getItem("user") || "unknown");
+// ✅ Load commissions
+async function loadCommissions() {
+  const user = localStorage.getItem("kediUser");
 
-      const result = await postFormData("/api/submit", formData);
+  try {
+    const res = await fetch(`${BASE_URL}/api/commissions?user=${user}`);
+    const data = await res.json();
 
-      if (result?.success) {
-        Swal.fire("Byoherejwe", "Transaction submitted neza!", "success");
-        form.reset();
-      } else {
-        Swal.fire("Transaction Failed", result?.message || "Unknown error", "error");
-      }
-    });
+    document.getElementById("total-commissions").textContent = data.totalCommissions + " RWF";
+
+    const list = document.getElementById("commission-list");
+    list.innerHTML = data.commissions.map(c => `
+      <li>From ${c.fromUser} - ${c.amount} RWF</li>
+    `).join("");
+  } catch (error) {
+    console.error("Error fetching commissions:", error);
   }
 }
 
-// DASHBOARD: Load transaction history
-if (window.location.pathname.includes("dashboard.html")) {
-  const user = localStorage.getItem("user");
-  if (user) {
-    fetch(`${BASE_API}/api/history?user=${user}`)
-      .then(res => res.json())
-      .then(data => {
-        const table = document.querySelector("#history");
-        if (table && Array.isArray(data)) {
-          data.forEach(entry => {
-            const row = document.createElement("tr");
-            Object.values(entry).forEach(val => {
-              const td = document.createElement("td");
-              td.textContent = val;
-              row.appendChild(td);
-            });
-            table.appendChild(row);
-          });
-        }
-      })
-      .catch(err => console.error("Failed to load history:", err));
+// ✅ Attach event listeners on page load
+window.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("signupForm")) {
+    document.getElementById("signupForm").addEventListener("submit", handleSignup);
   }
-}
 
-// Show logged-in user name if available
-document.addEventListener("DOMContentLoaded", () => {
-  const user = localStorage.getItem("user");
-  if (user && document.getElementById("user-name")) {
-    document.getElementById("user-name").textContent = user;
+  if (document.getElementById("loginForm")) {
+    document.getElementById("loginForm").addEventListener("submit", handleLogin);
+  }
+
+  if (document.getElementById("txnForm")) {
+    document.getElementById("txnForm").addEventListener("submit", handleTransactionSubmit);
+  }
+
+  if (document.getElementById("transaction-history")) {
+    loadTransactionHistory();
+  }
+
+  if (document.getElementById("commission-list")) {
+    loadCommissions();
   }
 });
-
-// LOGOUT function
-function logout() {
-  localStorage.removeItem("user");
-  window.location.href = "login.html";
-}

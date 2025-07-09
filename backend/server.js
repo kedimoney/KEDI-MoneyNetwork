@@ -11,6 +11,12 @@ const Commission = require('./models/commission');
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Health check route for Render
+app.get('/', (req, res) => {
+  res.send('✅ KEDI Money Network API is live.');
+});
 
 // MongoDB connect
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -39,13 +45,10 @@ app.post('/api/signup', async (req, res) => {
     const userExists = await User.findOne({ $or: [{ username }, { idNumber }] });
     if (userExists) return res.status(409).json({ message: "Username or ID Number already exists" });
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Generate referralId for new user
     const newReferralId = generateReferralId(username);
 
-    // If referralId exists in request, find referrer
+    // Find referrer if referralId is provided
     let referrer = null;
     if (referralId) {
       referrer = await User.findOne({ referralId });
@@ -106,8 +109,8 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// --- Transaction submit route ---
-app.post('/api/submit', express.urlencoded({ extended: true }), async (req, res) => {
+// --- Submit transaction ---
+app.post('/api/submit', async (req, res) => {
   try {
     const { user, type, amount, txnId } = req.body;
     if (!user || !type || !amount) {
@@ -123,7 +126,7 @@ app.post('/api/submit', express.urlencoded({ extended: true }), async (req, res)
   }
 });
 
-// --- Get transaction history ---
+// --- Transaction history ---
 app.get('/api/history', async (req, res) => {
   try {
     const user = req.query.user;
@@ -135,17 +138,15 @@ app.get('/api/history', async (req, res) => {
   }
 });
 
-// --- Get commissions earned by a user ---
+// --- Commissions info ---
 app.get('/api/commissions', async (req, res) => {
   try {
     const username = req.query.user;
     if (!username) return res.status(400).json({ message: "User query required" });
 
-    // Total commissions earned (from user doc)
     const user = await User.findOne({ username });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Also fetch detailed commission records
     const commissions = await Commission.find({ user: username }).sort({ date: -1 });
 
     res.json({

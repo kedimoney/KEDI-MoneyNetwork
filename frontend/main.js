@@ -1,164 +1,168 @@
-console.log("🔥 main.js loaded!");
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const cors = require('cors');
+const path = require('path');
 
-const BASE_URL = window.location.hostname.includes("localhost")
-  ? "http://localhost:3000"
-  : "https://kedi-moneynetwork.onrender.com";
+const User = require('./models/user');
+const Transaction = require('./models/transaction');
+const Commission = require('./models/commission');
 
-// ✅ Signup form handler
-async function handleSignup(event) {
-  event.preventDefault();
+const app = express();
 
-  const form = event.target;
-  const formData = {
-    firstName: form.firstName.value,
-    lastName: form.lastName.value,
-    district: form.district.value,
-    sector: form.sector.value,
-    cell: form.cell.value,
-    village: form.village.value,
-    idNumber: form.idNumber.value,
-    username: form.username.value,
-    password: form.password.value,
-    referralId: form.referralId.value,
-    amount: Number(form.amount.value),
-    paymentMethod: form.paymentMethod.value,
-    txnId: form.txnId.value
-  };
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+// Connect MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('✅ MongoDB connected'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
+
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+// On root, send index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+});
+
+// Helper: generate referral ID
+function generateReferralId(username) {
+  return username + Math.floor(1000 + Math.random() * 9000);
+}
+
+// Signup
+app.post('/api/signup', async (req, res) => {
   try {
-    const res = await fetch(`${BASE_URL}/api/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData)
+    const {
+      firstName, lastName, district, sector, cell, village,
+      idNumber, username, password, referralId,
+      amount, paymentMethod, txnId
+    } = req.body;
+
+    if (!firstName || !lastName || !district || !sector || !cell || !village ||
+      !idNumber || !username || !password || !paymentMethod || !txnId) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const userExists = await User.findOne({ $or: [{ username }, { idNumber }] });
+    if (userExists) return res.status(409).json({ message: "Username or ID Number already exists" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newReferralId = generateReferralId(username);
+
+    let referrer = null;
+    if (referralId) {
+      referrer = await User.findOne({ referralId });
+    }
+
+    const newUser = new User({
+      firstName, lastName, district, sector, cell, village,
+      idNumber, username, password: hashedPassword,
+      referralId: newReferralId,
+      referrerId: referrer ? referrer.referralId : null,
+      amount,
+      paymentMethod,
+      txnId,
+      commissionsEarned: 0
     });
 
-    const data = await res.json();
-    if (data.success) {
-      alert("Account created! Your Referral ID is: " + data.referralId);
-      window.location.href = "login.html";
-    } else {
-      alert("Signup failed: " + (data.message || "Unknown error"));
+    await newUser.save();
+
+    if (referrer) {
+      const commissionAmount = amount * 0.10;
+      referrer.commissionsEarned += commissionAmount;
+      await referrer.save();
+
+      const commissionRecord = new Commission({
+        user: referrer.username,
+        fromUser: username,
+        amount: commissionAmount,
+      });
+      await commissionRecord.save();
     }
+
+    res.json({ success: true, referralId: newReferralId });
   } catch (error) {
-    alert("Server error during signup.");
+    console.error(error);
+    res.status(500).json({ message: "Server error during signup" });
   }
-}
+});
 
-// ✅ Login handler
-async function handleLogin(event) {
-  event.preventDefault();
-
-  const form = event.target;
-  const username = form.username.value;
-  const password = form.password.value;
-
+// Login
+app.post('/api/login', async (req, res) => {
   try {
-    const res = await fetch(`${BASE_URL}/api/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ message: "Missing username or password" });
+
+    const user = await User.findOne({ username });
+    if (!user) return res.status(401).json({ success: false, message: "Invalid credentials" });
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ success: false, message: "Invalid credentials" });
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: "Server error during login" });
+  }
+});
+
+// Submit transaction
+app.post('/api/submit', async (req, res) => {
+  try {
+    const { user, type, amount, txnId } = req.body;
+    if (!user || !type || !amount) {
+      return res.status(400).json({ message: "Missing transaction data" });
+    }
+    const newTxn = new Transaction({
+      user, type, amount: Number(amount), txnId
     });
-
-    const data = await res.json();
-    if (data.success) {
-      alert("Login successful!");
-      localStorage.setItem("kediUser", username);
-      window.location.href = "dashboard.html";
-    } else {
-      alert("Login failed: " + data.message);
-    }
+    await newTxn.save();
+    res.json({ success: true });
   } catch (error) {
-    alert("Server error during login.");
+    res.status(500).json({ message: "Server error during transaction submit" });
   }
-}
+});
 
-// ✅ Submit transaction
-async function handleTransactionSubmit(event) {
-  event.preventDefault();
-
-  const form = event.target;
-  const user = localStorage.getItem("kediUser");
-  const txnData = {
-    user,
-    type: form.type.value,
-    amount: Number(form.amount.value),
-    txnId: form.txnId.value
-  };
-
+// Transaction history
+app.get('/api/history', async (req, res) => {
   try {
-    const res = await fetch(`${BASE_URL}/api/submit`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(txnData)
+    const user = req.query.user;
+    if (!user) return res.status(400).json({ message: "User query required" });
+    const history = await Transaction.find({ user }).sort({ date: -1 });
+    res.json(history);
+  } catch (error) {
+    res.status(500).json({ message: "Server error fetching history" });
+  }
+});
+
+// Commissions info
+app.get('/api/commissions', async (req, res) => {
+  try {
+    const username = req.query.user;
+    if (!username) return res.status(400).json({ message: "User query required" });
+
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const commissions = await Commission.find({ user: username }).sort({ date: -1 });
+
+    res.json({
+      totalCommissions: user.commissionsEarned,
+      commissions
     });
-
-    const data = await res.json();
-    if (data.success) {
-      alert("Transaction submitted!");
-      form.reset();
-    } else {
-      alert("Transaction failed.");
-    }
   } catch (error) {
-    alert("Error submitting transaction.");
+    res.status(500).json({ message: "Server error fetching commissions" });
   }
-}
+});
 
-// ✅ Load transaction history
-async function loadTransactionHistory() {
-  const user = localStorage.getItem("kediUser");
-
-  try {
-    const res = await fetch(`${BASE_URL}/api/history?user=${user}`);
-    const data = await res.json();
-
-    const container = document.getElementById("transaction-history");
-    container.innerHTML = data.map(txn => `
-      <li>${txn.type} - ${txn.amount} RWF (${txn.txnId})</li>
-    `).join("");
-  } catch (error) {
-    console.error("Error fetching history:", error);
-  }
-}
-
-// ✅ Load commissions
-async function loadCommissions() {
-  const user = localStorage.getItem("kediUser");
-
-  try {
-    const res = await fetch(`${BASE_URL}/api/commissions?user=${user}`);
-    const data = await res.json();
-
-    document.getElementById("total-commissions").textContent = data.totalCommissions + " RWF";
-
-    const list = document.getElementById("commission-list");
-    list.innerHTML = data.commissions.map(c => `
-      <li>From ${c.fromUser} - ${c.amount} RWF</li>
-    `).join("");
-  } catch (error) {
-    console.error("Error fetching commissions:", error);
-  }
-}
-
-// ✅ Attach event listeners on page load
-window.addEventListener("DOMContentLoaded", () => {
-  if (document.getElementById("signupForm")) {
-    document.getElementById("signupForm").addEventListener("submit", handleSignup);
-  }
-
-  if (document.getElementById("loginForm")) {
-    document.getElementById("loginForm").addEventListener("submit", handleLogin);
-  }
-
-  if (document.getElementById("txnForm")) {
-    document.getElementById("txnForm").addEventListener("submit", handleTransactionSubmit);
-  }
-
-  if (document.getElementById("transaction-history")) {
-    loadTransactionHistory();
-  }
-
-  if (document.getElementById("commission-list")) {
-    loadCommissions();
-  }
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
+const path = require('path');
 
 const User = require('./models/user');
 const Transaction = require('./models/transaction');
@@ -13,22 +14,26 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check route for Render
+// ✅ Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('✅ MongoDB connected'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
+
+// ✅ Serve frontend static files
+app.use(express.static(path.join(__dirname, '../frontend')));
 app.get('/', (req, res) => {
-  res.send('✅ KEDI Money Network API is live.');
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// MongoDB connect
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
-
-// Helper to generate unique referralId (simple example)
+// ✅ Helper: generate referral ID
 function generateReferralId(username) {
   return username + Math.floor(1000 + Math.random() * 9000);
 }
 
-// --- Signup route ---
+// ✅ Signup route
 app.post('/api/signup', async (req, res) => {
   try {
     const {
@@ -48,7 +53,6 @@ app.post('/api/signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newReferralId = generateReferralId(username);
 
-    // Find referrer if referralId is provided
     let referrer = null;
     if (referralId) {
       referrer = await User.findOne({ referralId });
@@ -67,15 +71,12 @@ app.post('/api/signup', async (req, res) => {
 
     await newUser.save();
 
-    // Give commission to referrer (e.g. 10% of amount)
+    // 💸 Add commission to referrer
     if (referrer) {
       const commissionAmount = amount * 0.10;
-
-      // Update referrer commission balance
       referrer.commissionsEarned += commissionAmount;
       await referrer.save();
 
-      // Save commission record
       const commissionRecord = new Commission({
         user: referrer.username,
         fromUser: username,
@@ -91,7 +92,7 @@ app.post('/api/signup', async (req, res) => {
   }
 });
 
-// --- Login route ---
+// ✅ Login route
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -109,13 +110,14 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// --- Submit transaction ---
+// ✅ Submit transaction
 app.post('/api/submit', async (req, res) => {
   try {
     const { user, type, amount, txnId } = req.body;
     if (!user || !type || !amount) {
       return res.status(400).json({ message: "Missing transaction data" });
     }
+
     const newTxn = new Transaction({
       user, type, amount: Number(amount), txnId
     });
@@ -126,11 +128,12 @@ app.post('/api/submit', async (req, res) => {
   }
 });
 
-// --- Transaction history ---
+// ✅ Transaction history
 app.get('/api/history', async (req, res) => {
   try {
     const user = req.query.user;
     if (!user) return res.status(400).json({ message: "User query required" });
+
     const history = await Transaction.find({ user }).sort({ date: -1 });
     res.json(history);
   } catch (error) {
@@ -138,7 +141,7 @@ app.get('/api/history', async (req, res) => {
   }
 });
 
-// --- Commissions info ---
+// ✅ Commission info
 app.get('/api/commissions', async (req, res) => {
   try {
     const username = req.query.user;
@@ -158,5 +161,8 @@ app.get('/api/commissions', async (req, res) => {
   }
 });
 
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});

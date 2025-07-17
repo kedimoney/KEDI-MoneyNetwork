@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard – KEDI Money Network</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f9fafb;
+      margin: 0;
+      padding: 0;
+      color: #1f2937;
+    }
+
+    header {
+      background-color: #16a34a;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .logout-btn {
+      background-color: #dc2626;
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+    }
+
+    main {
+      padding: 2rem;
+    }
+
+    section {
+      background-color: white;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+
+    h2 {
+      color: #16a34a;
+      margin-bottom: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f3f4f6;
+    }
+
+    button.approve {
+      background-color: #16a34a;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+    }
+
+    form textarea {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+    }
+
+    form button {
+      margin-top: 1rem;
+      background-color: #16a34a;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    form button:hover {
+      background-color: #15803d;
+    }
+
+    .success {
+      color: green;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Admin Panel – KEDI</h1>
+    <button class="logout-btn" onclick="logout()">Sohoka</button>
+  </header>
+
+  <main>
+    <!-- Section 1: Abakoresha bashya -->
+    <section>
+      <h2>Abiyandikishije Bataremezwa</h2>
+      <table id="pendingUsersTable">
+        <thead>
+          <tr>
+            <th>Izina</th>
+            <th>Username</th>
+            <th>Transaction ID</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="pendingUsersBody">
+          <!-- JS will populate -->
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 2: Transaction History -->
+    <section>
+      <h2>Transaction History Yose</h2>
+      <table id="transactionsTable">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Txn ID</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="transactionsBody">
+          <!-- JS will populate -->
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 3: Gutanga Updates -->
+    <section>
+      <h2>Ohereza Itangazo rishya</h2>
+      <form id="updateForm">
+        <label for="updateText">Andika Itangazo</label>
+        <textarea id="updateText" name="updateText" rows="4" placeholder="Urugero: Turabashimira uruhare rwanyu..."></textarea>
+        <button type="submit">Ohereza</button>
+        <div class="success" id="updateSuccess" style="display: none;">Itangazo ryatanzwe!</div>
+      </form>
+    </section>
+  </main>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -2,95 +2,88 @@
 <html lang="rw">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kwiyandikisha – Kedi Money Network</title>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Iyandikishe - KEDI</title>
   <style>
     body {
       font-family: sans-serif;
-      background: #f0f8ff;
-      margin: 0;
-      padding: 0;
+      background: #f0fdf4;
+      padding: 2rem;
     }
-    form {
+    .form-box {
       max-width: 600px;
       margin: auto;
       background: white;
       padding: 2rem;
       border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    input, label, select, button {
+    h2 {
+      text-align: center;
+      color: #16a34a;
+    }
+    label {
       display: block;
-      width: 100%;
       margin-top: 1rem;
     }
-    button {
-      background-color: green;
-      color: white;
-      padding: 1rem;
+    input, select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.2rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
     }
-    .info-box {
-      background-color: #e6f2ff;
-      padding: 1rem;
-      margin-top: 0.5rem;
-      border-left: 4px solid #0077cc;
+    button {
+      margin-top: 2rem;
+      width: 100%;
+      padding: 0.8rem;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
     }
   </style>
 </head>
 <body>
-  <h1 style="text-align:center">KEDI Money Network – Signup</h1>
-  <form id="signupForm">
-    <label>First Name <input name="firstName" required></label>
-    <label>Last Name <input name="lastName" required></label>
-    <label>Akarere <input name="district" required></label>
-    <label>Umurenge <input name="sector" required></label>
-    <label>Akagari <input name="cell" required></label>
-    <label>Umudugudu <input name="village" required></label>
-    <label>ID Number <input name="idNumber" required></label>
-    <label>Username <input name="username" required></label>
-    <label>Password <input name="password" type="password" required></label>
-    <label>Referral ID <input name="referralId"></label>
-    <label>Referrer First Name <input name="referrerFirstName"></label>
-    <label>Referrer Last Name <input name="referrerLastName"></label>
-    <label>Amafaranga <input name="amount" value="10100" readonly></label>
+  <div class="form-box">
+    <h2>Iyandikishe</h2>
+    <form id="signupForm">
+      <label>Izina rya mbere</label>
+      <input type="text" name="firstName" required>
+      <label>Izina rya kabiri</label>
+      <input type="text" name="lastName" required>
+      <label>Akarere</label>
+      <input type="text" name="district" required>
+      <label>Umurenge</label>
+      <input type="text" name="sector" required>
+      <label>Akagari</label>
+      <input type="text" name="cell" required>
+      <label>Umudugudu</label>
+      <input type="text" name="village" required>
+      <label>Indangamuntu</label>
+      <input type="text" name="idNumber" required>
+      <label>Username</label>
+      <input type="text" name="username" required>
+      <label>Password</label>
+      <input type="password" name="password" required>
+      <label>Referral ID (niba ufite)</label>
+      <input type="text" name="referralId">
 
-    <label>Uburyo bwo Kwishyura (Payment Method)
-      <select name="paymentMethod" id="paymentMethod" required>
+      <label>Uburyo bwo kwishyura</label>
+      <select name="paymentMethod" required>
         <option value="">-- Hitamo --</option>
-        <option value="mobile">Mobile Money</option>
-        <option value="bank">Bank Transfer</option>
+        <option value="mobilemoney">Mobile Money</option>
+        <option value="bank">Bank</option>
       </select>
-    </label>
+      <label>TXN ID</label>
+      <input type="text" name="txnId" required>
+      <label>Umubare w'amafaranga</label>
+      <input type="number" name="amount" required>
 
-    <div id="paymentInfo" class="info-box" style="display: none;"></div>
-
-    <label>TXN ID <input name="txnId" required placeholder="Urugero: MTN4Y7362YI" /></label>
-
-    <button type="submit">Ohereza</button>
-    <div class="signup-link">
-      <p>Nariyandikishije <a href="login.html">Injira hano</a></p>
-    </div>  
-  </form>
-
-
-  <script>
-    const paymentSelect = document.getElementById('paymentMethod');
-    const infoDiv = document.getElementById('paymentInfo');
-
-    paymentSelect.addEventListener('change', () => {
-      const value = paymentSelect.value;
-      if (value === "mobile") {
-        infoDiv.innerHTML = "👉 Uko wishyura kuri MTN: <strong>*182*8*1*1594092#</strong>";
-        infoDiv.style.display = "block";
-      } else if (value === "bank") {
-        infoDiv.innerHTML = "🏦 Bank Transfer: <strong>Coming soon...</strong>";
-        infoDiv.style.display = "block";
-      } else {
-        infoDiv.style.display = "none";
-      }
-    });
-  </script>
-
-  <script src="main.js"></script>
+      <button type="submit">Ohereza</button>
+    </form>
+  </div>
+  <script src="js/main.js"></script>
 </body>
 </html>

@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({
-  user: { type: String, required: true }, // username
-  type: { type: String, required: true }, // e.g. "deposit", "withdraw", "loan"
-  amount: { type: Number, required: true },
-  date: { type: Date, default: Date.now },
-  txnId: { type: String },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  type: String, // deposit | withdraw | loan
+  amount: Number,
+  txnId: String,
+  date: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

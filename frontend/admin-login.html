@@ -3,33 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Injira - KEDI Money Network</title>
+  <title>Injira nka Admin – KEDI Money Network</title>
   <style>
     body {
-      background-color: #f9fafb;
+      background-color: #f3f4f6;
       font-family: sans-serif;
-      color: #1f2937;
-      margin: 0;
       padding: 2rem;
+      color: #1f2937;
     }
+
     .container {
       max-width: 400px;
-      margin: 0 auto;
+      margin: auto;
       background: white;
       padding: 2rem;
       border-radius: 0.5rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
+
     h2 {
       text-align: center;
       color: #16a34a;
       margin-bottom: 1.5rem;
     }
+
     label {
       display: block;
       margin-top: 1rem;
       font-weight: 600;
     }
+
     input {
       width: 100%;
       padding: 0.5rem;
@@ -37,6 +40,7 @@
       border: 1px solid #d1d5db;
       border-radius: 0.375rem;
     }
+
     button {
       margin-top: 2rem;
       background-color: #16a34a;
@@ -48,14 +52,17 @@
       font-weight: bold;
       cursor: pointer;
     }
+
     button:hover {
       background-color: #15803d;
     }
-    .signup-link {
-      margin-top: 1rem;
+
+    .back {
       text-align: center;
+      margin-top: 1rem;
     }
-    .signup-link a {
+
+    .back a {
       color: #16a34a;
       text-decoration: none;
       font-weight: bold;
@@ -64,18 +71,19 @@
 </head>
 <body>
   <div class="container">
-    <h2>Injira</h2>
-    <form id="loginForm">
-      <label for="username">Izina ukoresha (Username)</label>
-      <input type="text" id="username" name="username" required>
+    <h2>Injira nka Admin</h2>
+    <form id="adminLoginForm">
+      <label for="adminUsername">Izina ry'Ubutegetsi</label>
+      <input type="text" id="adminUsername" name="adminUsername" required />
 
-      <label for="password">Ijambo ry'ibanga (Password)</label>
-      <input type="password" id="password" name="password" required>
+      <label for="adminPassword">Ijambo ry'Ibanga</label>
+      <input type="password" id="adminPassword" name="adminPassword" required />
 
       <button type="submit">Injira</button>
     </form>
-    <div class="signup-link">
-      <p>Nturarangiza kwiyandikisha? <a href="signup.html">Iyandikishe hano</a></p>
+
+    <div class="back">
+      <a href="index.html">Subira ku rubuga</a>
     </div>
   </div>
 

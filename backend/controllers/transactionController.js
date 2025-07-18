@@ -1,97 +1,31 @@
-// backend/controllers/transactionController.js
-
-const Transaction = require('../models/transaction');
 const User = require('../models/user');
+const Transaction = require('../models/transaction');
 
-exports.createTransaction = async (req, res) => {
+// Kubitsa amafaranga
+const makeDeposit = async (req, res) => {
   try {
-    const { userId, type, amount } = req.body;
+    const { userId, amount, method, txnId } = req.body;
+
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const transaction = new Transaction({ userId, type, amount });
+    const transaction = new Transaction({
+      user: userId,
+      amount,
+      type: 'deposit',
+      method,
+      txnId,
+      status: 'pending'
+    });
+
     await transaction.save();
-
-    user.transactions.push(transaction._id);
-    await user.save();
-
-    res.status(201).json(transaction);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(201).json({ message: 'Deposit created, pending approval', transaction });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
 
-exports.getTransactionsByUser = async (req, res) => {
-  try {
-    const userId = req.params.userId;
-    const transactions = await Transaction.find({ userId });
-    res.status(200).json(transactions);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
-  }
-};
-
-// backend/controllers/adminController.js
-
-const User = require('../models/user');
-const Transaction = require('../models/transaction');
-const News = require('../models/news');
-
-exports.adminLogin = async (req, res) => {
-  const { username, password } = req.body;
-  if (username === 'kedimoneynetwork1' && password === 'kedimoney') {
-    return res.status(200).json({ isAdmin: true });
-  }
-  return res.status(401).json({ message: 'Invalid admin credentials' });
-};
-
-exports.getPendingUsers = async (req, res) => {
-  try {
-    const users = await User.find({ approved: false });
-    res.status(200).json(users);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching users', error });
-  }
-};
-
-exports.approveUser = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    user.approved = true;
-    await user.save();
-    res.status(200).json({ message: 'User approved successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Approval failed', error });
-  }
-};
-
-exports.getAllTransactions = async (req, res) => {
-  try {
-    const transactions = await Transaction.find().populate('userId', 'fullName email');
-    res.status(200).json(transactions);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching transactions', error });
-  }
-};
-
-exports.postNews = async (req, res) => {
-  try {
-    const { title, content } = req.body;
-    const news = new News({ title, content });
-    await news.save();
-    res.status(201).json({ message: 'News posted successfully', news });
-  } catch (error) {
-    res.status(500).json({ message: 'Error posting news', error });
-  }
-};
-
-exports.getNews = async (req, res) => {
-  try {
-    const news = await News.find().sort({ createdAt: -1 });
-    res.status(200).json(news);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching news', error });
-  }
+// Export all functions
+module.exports = {
+  makeDeposit,
 };

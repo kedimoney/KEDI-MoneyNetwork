@@ -1,12 +1,15 @@
 // server.js
-require('dotenv').config();
+
+require('dotenv').config(); // Load environment variables
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 
-const authRoutes = require('./routes/authRoutes');
+// Import Routes (make sure file names match exactly)
+const authRoutes = require('./routes/auth'); // NOT authRoutes.js
 const transactionRoutes = require('./routes/transactionRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
@@ -17,27 +20,38 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan('dev'));
 
-// Serve frontend static files (if deployed together)
+// Serve frontend static files (for production)
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Fallback to index.html for SPA
+// Fallback route for SPA (Single Page Application)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
 });
 
-// MongoDB Connection and Server Start
-mongoose.connect(process.env.MONGO_URI, {
+// Connect to MongoDB and start server
+const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI;
+
+if (!MONGO_URI) {
+  console.error('❌ MONGO_URI not defined in environment variables!');
+  process.exit(1);
+}
+
+mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
 })
 .then(() => {
-  console.log('MongoDB connected');
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  console.log('✅ MongoDB connected successfully');
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
 })
-.catch(err => console.error('MongoDB connection error:', err));
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err.message);
+});

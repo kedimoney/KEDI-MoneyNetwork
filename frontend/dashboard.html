@@ -59,6 +59,21 @@
     #logoutBtn:hover {
       background-color: #b91c1c;
     }
+
+    .form-link {
+      display: inline-block;
+      background-color: #16a34a;
+      color: white;
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      border-radius: 0.375rem;
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+
+    .form-link:hover {
+      background-color: #15803d;
+    }
   </style>
 </head>
 <body>
@@ -89,7 +104,47 @@
     </ul>
   </div>
 
+  <div class="section">
+    <h2>🧾 Kora Ubucuruzi Bushya</h2>
+    <a href="form.html" class="form-link">Jya kuri Form yo Kubitsa, Kubikuza n’Inguzanyo</a>
+  </div>
+
   <!-- JavaScript -->
-  <script src="js/main.js"></script>
+  <script>
+    // Check if user is logged in and approved
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert("Ntago winjiye! Injira mbere yo gukomeza.");
+      window.location.href = "login.html";
+    }
+
+    fetch('https://kedi-moneynetwork.onrender.com/api/user/me', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (!data || !data.approved) {
+        alert("Uragomba kwemezwa n'ubuyobozi mbere yo kubona dashboard.");
+        window.location.href = "login.html";
+      } else {
+        // loadTransactionHistory();
+        // loadTreePlan();
+        // loadCommissions();
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Habaye ikibazo mu gutangira dashboard.");
+      window.location.href = "login.html";
+    });
+
+    // Logout
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    });
+  </script>
 </body>
 </html>

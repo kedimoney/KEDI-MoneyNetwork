@@ -1,89 +1,115 @@
 <!DOCTYPE html>
 <html lang="rw">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Iyandikishe - KEDI</title>
+  <meta charset="UTF-8">
+  <title>Kwiyandikisha - KEDI Money Network</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f0fdf4;
-      padding: 2rem;
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 0;
     }
-    .form-box {
-      max-width: 600px;
-      margin: auto;
-      background: white;
-      padding: 2rem;
+    .container {
+      max-width: 500px;
+      margin: 50px auto;
+      background-color: #fff;
+      padding: 30px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     h2 {
       text-align: center;
-      color: #16a34a;
+      color: #333;
     }
     label {
       display: block;
-      margin-top: 1rem;
+      margin-bottom: 5px;
+      font-weight: bold;
     }
     input, select {
       width: 100%;
-      padding: 0.5rem;
-      margin-top: 0.2rem;
+      padding: 10px;
+      margin-bottom: 15px;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
+    .info-box {
+      background-color: #e7f3fe;
+      color: #31708f;
+      padding: 10px;
+      margin-top: -10px;
+      margin-bottom: 15px;
+      border-left: 5px solid #2196F3;
+      display: none;
+    }
     button {
-      margin-top: 2rem;
       width: 100%;
-      padding: 0.8rem;
-      background: #16a34a;
+      background-color: #4CAF50;
       color: white;
       border: none;
+      padding: 12px;
       border-radius: 5px;
-      font-size: 1rem;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .login-link {
+      text-align: center;
+      margin-top: 15px;
+    }
+    .login-link a {
+      color: #2196F3;
+      text-decoration: none;
+    }
+    .login-link a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <div class="form-box">
-    <h2>Iyandikishe</h2>
+  <div class="container">
+    <h2>Kwiyandikisha</h2>
     <form id="signupForm">
-      <label>Izina rya mbere</label>
-      <input type="text" name="firstName" required>
-      <label>Izina rya kabiri</label>
-      <input type="text" name="lastName" required>
-      <label>Akarere</label>
-      <input type="text" name="district" required>
-      <label>Umurenge</label>
-      <input type="text" name="sector" required>
-      <label>Akagari</label>
-      <input type="text" name="cell" required>
-      <label>Umudugudu</label>
-      <input type="text" name="village" required>
-      <label>Indangamuntu</label>
-      <input type="text" name="idNumber" required>
-      <label>Username</label>
-      <input type="text" name="username" required>
-      <label>Password</label>
-      <input type="password" name="password" required>
-      <label>Referral ID (niba ufite)</label>
-      <input type="text" name="referralId">
+      <label for="name">Amazina</label>
+      <input type="text" id="name" name="name" required>
 
-      <label>Uburyo bwo kwishyura</label>
-      <select name="paymentMethod" required>
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required>
+
+      <label for="phone">Nimero ya Telephone</label>
+      <input type="tel" id="phone" name="phone" required>
+
+      <label for="password">Ijambo ry’ibanga</label>
+      <input type="password" id="password" name="password" required>
+
+      <label for="paymentMethod">Uburyo bwo Kwishyura</label>
+      <select id="paymentMethod" name="paymentMethod" required>
         <option value="">-- Hitamo --</option>
-        <option value="mobilemoney">Mobile Money</option>
+        <option value="mobile_money">Mobile Money</option>
         <option value="bank">Bank</option>
       </select>
-      <label>TXN ID</label>
-      <input type="text" name="txnId" required>
-      <label>Umubare w'amafaranga</label>
-      <input type="number" name="amount" required>
+
+      <div class="info-box" id="mobileMoneyInfo">
+        Nyamuneka kohereza amafaranga kuri *182*8*1*... (Momo name: KEDI Network).
+      </div>
+
+      <div class="info-box" id="bankInfo">
+        comming soon...
+      </div>
+
+      <label for="txnId">Transaction ID</label>
+      <input type="text" id="txnId" name="txnId" required>
 
       <button type="submit">Ohereza</button>
     </form>
+    <div class="login-link">
+      Waramaze kwiyandikisha? <a href="login.html">Injira hano</a>
+    </div>
   </div>
-  <script src="js/main.js"></script>
+
+  <script src="main.js"></script>
 </body>
 </html>

@@ -1,21 +1,24 @@
 // backend/routes/adminRoutes.js
 const express = require('express');
 const router = express.Router();
-const {
-  adminLogin,
-  approveUser,
-  getAllUsers,
-  getAllTransactions,
-  postNewsUpdate,
-  getNews,
-} = require('../controllers/adminController');
-const { adminOnly } = require('../middleware/authMiddleware');
+const adminController = require('../controllers/adminController');
 
-router.post('/login', adminLogin);
-router.post('/approve-user', adminOnly, approveUser);
-router.get('/users', adminOnly, getAllUsers);
-router.get('/transactions', adminOnly, getAllTransactions);
-router.post('/news', adminOnly, postNewsUpdate);
-router.get('/news', getNews); // Public
+// Admin login
+router.post('/login', adminController.adminLogin);
+
+// Users pending approval
+router.get('/pending-users', adminController.getPendingUsers);
+
+// Approve user
+router.post('/approve-user/:id', adminController.approveUser);
+
+// Get all transactions
+router.get('/all-transactions', adminController.getAllTransactions);
+
+// Post news
+router.post('/news', adminController.postNews);
+
+// Get news
+router.get('/news', adminController.getNews);
 
 module.exports = router;

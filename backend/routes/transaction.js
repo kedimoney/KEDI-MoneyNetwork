@@ -1,8 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { saveTransaction, getUserTransactions } = require('../controllers/transactionController');
+const Transaction = require('../models/transaction');
 
-router.post('/submit', saveTransaction);
-router.get('/:userId', getUserTransactions);
+// POST: Create new transaction
+router.post('/submit', async (req, res) => {
+  try {
+    const newTransaction = new Transaction(req.body);
+    await newTransaction.save();
+    res.status(201).json({ message: 'Transaction submitted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Transaction submission failed', details: err.message });
+  }
+});
 
 module.exports = router;
